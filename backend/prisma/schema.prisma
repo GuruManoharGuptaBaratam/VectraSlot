@@ -1,0 +1,62 @@
+// Prisma Schema for VectraSlot (Single Location Parking System)
+
+generator client {
+  provider   = "prisma-client-js"
+  output     = "../src/generated/prisma"
+  engineType    = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+  //url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  role      Role      @default(USER)
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+}
+
+model ParkingSlot {
+  id         Int         @id @default(autoincrement())
+  slotNumber String      @unique
+  status     SlotStatus  @default(AVAILABLE)
+  bookings   Booking[]
+  createdAt  DateTime    @default(now())
+}
+
+model Booking {
+  id        Int            @id @default(autoincrement())
+  userId    Int
+  slotId    Int
+  user      User           @relation(fields: [userId], references: [id])
+  slot      ParkingSlot    @relation(fields: [slotId], references: [id])
+  startTime DateTime
+  endTime   DateTime?
+  status    BookingStatus  @default(ACTIVE)
+  createdAt DateTime       @default(now())
+
+  @@index([slotId])
+  @@index([userId])
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum SlotStatus {
+  AVAILABLE
+  RESERVED
+  OCCUPIED
+}
+
+enum BookingStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}

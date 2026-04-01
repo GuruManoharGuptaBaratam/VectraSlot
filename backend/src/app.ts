@@ -1,12 +1,14 @@
 import express from "express"
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 class App {
     app: express.Application
-    port: string | number
+    port: string | number | undefined
 
     constructor() {
         this.app = express();
-        this.port = 4035;
+        this.port = process.env.PORT;
         this.sample_route()
     }
 
