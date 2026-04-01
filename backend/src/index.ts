@@ -1,2 +1,4 @@
-let something: string = "Hello there"
-console.log(something);
+import App from './app'
+
+const app = new App();
+app.startApp();
