@@ -5,7 +5,7 @@ export interface AuthRequest {
     email: string;
     password: string;
     role?: Role;
-    adminSecret?: string; // Add back for secure Admin login
+    adminSecret?: string; 
 }
 
 export interface AuthResponse {

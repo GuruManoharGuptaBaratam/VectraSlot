@@ -19,7 +19,7 @@ export class UserAuthStrategy implements IAuthStrategy {
                 name,
                 email,
                 password: hashedPassword,
-                role: Role.USER // STRICTLY set to USER on registration
+                role: Role.USER
             }
         });
 
@@ -40,7 +40,7 @@ export class UserAuthStrategy implements IAuthStrategy {
 
         const user = await prisma.user.findUnique({ where: { email } });
         
-        // SPECIFIC ERROR: Differentiates between missing records or incorrect role access
+
         if (!user || user.role !== Role.USER) {
             throw new Error("Login failed: Invalid User account or incorrect role.");
         }

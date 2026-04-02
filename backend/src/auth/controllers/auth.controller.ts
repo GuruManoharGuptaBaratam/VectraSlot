@@ -8,7 +8,7 @@ export class AuthController {
     private authService: AuthService;
 
     constructor() {
-        // Default strategy
+
         this.authService = new AuthService(new UserAuthStrategy());
     }
 
@@ -22,7 +22,7 @@ export class AuthController {
     async register(req: Request, res: Response): Promise<void> {
         try {
             const data = req.body;
-            // REGISTRATION IS NOW FOR USER ONLY
+
             this.authService.setStrategy(new UserAuthStrategy());
             
             const result = await this.authService.register(data);
@@ -38,7 +38,7 @@ export class AuthController {
     async login(req: Request, res: Response): Promise<void> {
         try {
             const { role, ...data } = req.body;
-            // LOGIN STILL REQUIRES ROLE TO KNOW WHICH STRATEGY TO USE
+
             if (!role) throw new Error("Role (USER or ADMIN) is required for login.");
             
             this.authService.setStrategy(this.resolveStrategy(role));

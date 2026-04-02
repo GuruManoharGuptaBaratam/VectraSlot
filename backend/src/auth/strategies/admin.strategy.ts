@@ -13,14 +13,14 @@ export class AdminAuthStrategy implements IAuthStrategy {
     async login(data: AuthRequest): Promise<AuthResponse> {
         const { email, password, adminSecret } = data;
 
-        // EXTRA SECURITY: Admin must provide the correct secret key to even attempt a login
+
         if (adminSecret !== process.env.ADMIN_SECRET) {
             throw new Error("Login failed: Invalid admin secret key provided.");
         }
 
         const user = await prisma.user.findUnique({ where: { email } });
         
-        // SPECIFIC ERROR: Clearly identifies admin-only access and differentiates role mismatch
+
         if (!user || user.role !== Role.ADMIN) {
             throw new Error("Admin login failed: Account must have Admin privileges or does not exist.");
         }
