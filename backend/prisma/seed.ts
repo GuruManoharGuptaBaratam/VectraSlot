@@ -1,20 +1,43 @@
-// prisma/seed.ts
 import "dotenv/config";
+import bcrypt from "bcryptjs";
 import { prisma } from "../src/utils/prisma";
+import { Role } from "../src/generated/prisma";
 
+/**
+ * Seed script for initial test data.
+ * NOTE: Admin creation is handled via private injection for security.
+ */
 async function main() {
-  await prisma.user.create({
-    data: {
-      name: "Admin",
-      email: "admin@vectraslot.com",
-      password: "hashed_password_here", // use bcrypt in real app
-      role: "ADMIN",
-    },
-  });
+    const testEmail = "test@example.com";
+    const testPassword = "testPassword123";
 
-  console.log("✅ Admin created");
+    console.log("Checking for existing test user...");
+    const existingUser = await prisma.user.findUnique({
+        where: { email: testEmail }
+    });
+
+    if (!existingUser) {
+        console.log("Seeding test user...");
+        const hashedPassword = await bcrypt.hash(testPassword, 10);
+        await prisma.user.create({
+            data: {
+                name: "Test User",
+                email: testEmail,
+                password: hashedPassword,
+                role: Role.USER
+            }
+        });
+        console.log("✅ Test user created successfully!");
+    } else {
+        console.log("Test user already exists. Skipping...");
+    }
 }
 
 main()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect());
+    .catch((err) => {
+        console.error("Seed failed:", err);
+        process.exit(1);
+    })
+    .finally(async () => {
+        await prisma.$disconnect();
+    });
