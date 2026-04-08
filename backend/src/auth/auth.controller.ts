@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { AuthService } from "../services/auth.service";
-import { UserAuthStrategy } from "../strategies/user.strategy";
-import { AdminAuthStrategy } from "../strategies/admin.strategy";
-import { IAuthStrategy } from "../strategies/auth.strategy.interface";
+import { AuthService } from "./auth.service";
+import { UserAuthStrategy } from "./strategies/user.strategy";
+import { AdminAuthStrategy } from "./strategies/admin.strategy";
+import { IAuthStrategy } from "./strategies/auth.strategy.interface";
 
 export class AuthController {
     private authService: AuthService;
@@ -24,7 +24,7 @@ export class AuthController {
             const data = req.body;
 
             this.authService.setStrategy(new UserAuthStrategy());
-            
+
             const result = await this.authService.register(data);
             res.status(201).json({
                 message: "User registration successful",
@@ -40,7 +40,7 @@ export class AuthController {
             const { role, ...data } = req.body;
 
             if (!role) throw new Error("Role (USER or ADMIN) is required for login.");
-            
+
             this.authService.setStrategy(this.resolveStrategy(role));
 
             const result = await this.authService.login(data);

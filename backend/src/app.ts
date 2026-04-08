@@ -1,6 +1,6 @@
 import express from "express";
 import * as dotenv from 'dotenv';
-import authRoutes from "./auth/routes/auth.routes";
+import authRoutes from "./auth/auth.routes";
 
 dotenv.config();
 
@@ -11,7 +11,7 @@ class App {
     constructor() {
         this.app = express();
         this.port = process.env.PORT || 4035;
-        
+
         this.initializeMiddlewares();
         this.initializeRoutes();
     }

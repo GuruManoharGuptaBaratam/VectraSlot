@@ -1,4 +1,4 @@
-import { AuthRequest, AuthResponse, IAuthStrategy } from "../strategies/auth.strategy.interface";
+import { AuthRequest, AuthResponse, IAuthStrategy } from "./strategies/auth.strategy.interface";
 
 export class AuthService {
     private strategy: IAuthStrategy;
