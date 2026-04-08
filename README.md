@@ -53,6 +53,31 @@ The following represents the current relational structure of the VectraSlot data
 *   **Booking Management**: System-wide oversight and modification capabilities.
 *   **Analytics**: Real-time stats engine for total occupancy and growth.
 
+## API Endpoints
+
+### Authentication Module
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| POST | `/api/auth/register` | User Registration (Locked to USER role) | No |
+| POST | `/api/auth/login` | Secure Role-Based Login | No |
+
+### Admin Panel (Protected)
+| Module | Method | Endpoint | Functionality |
+| :--- | :--- | :--- | :--- |
+| **Users** | GET | `/api/admin/users` | List all system users |
+| | GET | `/api/admin/users/:id` | View detailed user profile |
+| | PATCH | `/api/admin/users/:id/role` | Update user role permissions |
+| | DELETE | `/api/admin/users/:id` | Remove user account |
+| **Slots** | POST | `/api/admin/slots` | Initialize new parking slot |
+| | GET | `/api/admin/slots` | Monitor slot occupancy & status |
+| | PATCH | `/api/admin/slots/:id` | Modify slot configuration |
+| | DELETE | `/api/admin/slots/:id` | Decommission parking slot |
+| **Bookings**| GET | `/api/admin/bookings` | View all system-wide bookings |
+| | GET | `/api/admin/bookings/:id` | Inspect specific booking details |
+| | PATCH | `/api/admin/bookings/:id` | Adjust or moderate active booking |
+| | DELETE | `/api/admin/bookings/:id` | Expunge booking record |
+| **Analytics**| GET | `/api/admin/stats` | Real-time Dashboard statistics |
+
 ---
 
 ## Testing Specifications & Workflow
