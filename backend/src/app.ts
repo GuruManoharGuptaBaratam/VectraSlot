@@ -1,6 +1,7 @@
 import express from "express";
 import * as dotenv from 'dotenv';
 import authRoutes from "./auth/auth.routes";
+import adminRoutes from "./admin/admin.routes";
 
 dotenv.config();
 
@@ -28,6 +29,9 @@ class App {
 
         // Use authentication routes
         this.app.use("/api/auth", authRoutes);
+        
+        // Use Admin routes
+        this.app.use("/api/admin", adminRoutes);
     }
 
     public startApp() {
