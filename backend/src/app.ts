@@ -1,12 +1,9 @@
 import express from "express";
-import * as dotenv from 'dotenv';
-<<<<<<< HEAD
+import * as dotenv from "dotenv";
 import authRoutes from "./auth/auth.routes";
 import adminRoutes from "./admin/admin.routes";
-=======
-import authRoutes from "./auth/routes/auth.routes";
 import slotRoutes from "./slots/slot.routes";
->>>>>>> 29a85ac (Slot Management Module)
+import bookingRoutes from "./booking/booking.routes";
 
 dotenv.config();
 
@@ -34,14 +31,11 @@ class App {
 
         // Use authentication routes
         this.app.use("/api/auth", authRoutes);
-        
-<<<<<<< HEAD
-        // Use Admin routes
         this.app.use("/api/admin", adminRoutes);
-=======
         // Use slot routes
         this.app.use("/api/slots", slotRoutes);
->>>>>>> 29a85ac (Slot Management Module)
+
+        this.app.use("/api/booking", bookingRoutes);
     }
 
     public startApp() {
