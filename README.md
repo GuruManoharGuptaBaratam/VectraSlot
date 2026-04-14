@@ -77,11 +77,12 @@ The following represents the current relational structure of the VectraSlot data
 | PATCH | `/api/bookings/:id/complete` | Complete Booking | Mark a reservation as fulfilled |
 | DELETE | `/api/bookings/:id` | Cancel Booking | Standard reservation cancellation |
 
-### Slot Availability Module
+### Slot Management Module
 | Method | Endpoint | Description | Auth Required |
 | :--- | :--- | :--- | :--- |
 | GET | `/api/slots` | View All Slots | No |
-| GET | `/api/slots/available` | Check availability by time window | No |
+| POST | `/api/slots` | Create new parking slot | Pending Middleware |
+| PATCH | `/api/slots/:id` | Modify slot (status, slotNumber) | Pending Middleware |
 
 ### Admin Panel (Protected)
 | Module | Method | Endpoint | Functionality |
@@ -90,10 +91,6 @@ The following represents the current relational structure of the VectraSlot data
 | | GET | `/api/admin/users/:id` | View detailed user profile |
 | | PATCH | `/api/admin/users/:id/role` | Update user role permissions |
 | | DELETE | `/api/admin/users/:id` | Remove user account |
-| **Slots** | POST | `/api/admin/slots` | Initialize new parking slot |
-| | GET | `/api/admin/slots` | Monitor slot occupancy & status |
-| | PATCH | `/api/admin/slots/:id` | Modify slot configuration |
-| | DELETE | `/api/admin/slots/:id` | Decommission parking slot |
 | **Bookings**| GET | `/api/admin/bookings` | View all system-wide bookings |
 | | GET | `/api/admin/bookings/:id` | Inspect specific booking details |
 | | PATCH | `/api/admin/bookings/:id` | Adjust or moderate active booking |
@@ -124,7 +121,7 @@ The following represents the current relational structure of the VectraSlot data
     *   Retrieve the JWT `<ADMIN_TOKEN>`.
 2.  **Infrastructure Setup**:
     *   Set Header: `Authorization: Bearer <ADMIN_TOKEN>`.
-    *   Execute `POST /api/admin/slots` to create parking slots (e.g., `V-101`).
+    *   Execute `POST /api/slots` to create parking slots (e.g., `V-101`).
 3.  **User Authentication**:
     *   Execute `POST /api/auth/login` using the `test@example.com` credentials.
     *   Retrieve the JWT `<USER_TOKEN>`.
