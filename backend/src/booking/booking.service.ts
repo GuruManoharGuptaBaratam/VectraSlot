@@ -7,6 +7,19 @@ export const createBooking = async (
     endTime: Date,
 ) => {
     return await prisma.$transaction(async (tx) => {
+        // Check if slot exists
+        const slot = await tx.parkingSlot.findUnique({
+            where: { id: slotId }
+        });
+
+        if (!slot) {
+            throw new Error(`Slot with ID ${slotId} not found`);
+        }
+
+        if (startTime >= endTime) {
+            throw new Error("Invalid time range: startTime must be before endTime");
+        }
+
         const conflict = await tx.booking.findFirst({
             where: {
                 slotId,

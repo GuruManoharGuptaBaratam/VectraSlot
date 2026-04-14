@@ -3,20 +3,30 @@ import * as bookingService from "./booking.service";
 import { AuthRequest } from "../middlewares/auth.middleware";
 
 export const createBooking = async (req: AuthRequest, res: Response) => {
-    const { slotId, startTime, endTime } = req.body;
+    try {
+        if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+        const { slotId, startTime, endTime } = req.body;
 
-    const booking = await bookingService.createBooking(
-        req.user.userId,
-        slotId,
-        new Date(startTime),
-        new Date(endTime),
-    );
+        if (!slotId || !startTime || !endTime) {
+            return res.status(400).json({ error: "Missing required fields: slotId, startTime, endTime" });
+        }
 
-    res.status(201).json(booking);
+        const booking = await bookingService.createBooking(
+            req.user.id,
+            Number(slotId),
+            new Date(startTime),
+            new Date(endTime),
+        );
+
+        res.status(201).json(booking);
+    } catch (error: any) {
+        res.status(400).json({ error: error.message });
+    }
 };
 
 export const getMyBookings = async (req: AuthRequest, res: Response) => {
-    const bookings = await bookingService.getMyBookings(req.user.userId);
+    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+    const bookings = await bookingService.getMyBookings(req.user.id);
     res.json(bookings);
 };
 
@@ -26,20 +36,22 @@ export const getBookingById = async (req: Request, res: Response) => {
 };
 
 export const cancelBooking = async (req: AuthRequest, res: Response) => {
+    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
     const booking = await bookingService.cancelBooking(
         Number(req.params.id),
-        req.user.userId,
+        req.user.id,
     );
 
     res.json(booking);
 };
 
 export const updateBooking = async (req: AuthRequest, res: Response) => {
+    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
     const { startTime, endTime } = req.body;
 
     const booking = await bookingService.updateBooking(
         Number(req.params.id),
-        req.user.userId,
+        req.user.id,
         new Date(startTime),
         new Date(endTime),
     );
@@ -48,9 +60,10 @@ export const updateBooking = async (req: AuthRequest, res: Response) => {
 };
 
 export const completeBooking = async (req: AuthRequest, res: Response) => {
+    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
     const booking = await bookingService.completeBooking(
         Number(req.params.id),
-        req.user.userId,
+        req.user.id,
     );
 
     res.json(booking);
