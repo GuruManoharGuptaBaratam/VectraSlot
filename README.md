@@ -47,6 +47,7 @@ The following represents the current relational structure of the VectraSlot data
 ### 1. Core Architecture & Design Patterns
 *   **Layered Architecture**: Decoupled N-Tier structure separating Routes, Controllers (Request Handling), Services (Business Logic), and Data Validation (Zod schemas).
 *   **Single Responsibility Principle (SOLID)**: Strict adherence to SRP where functional responsibilities are granularly separated into dedicated files (e.g., `.routes.ts`, `.controller.ts`, `.service.ts`, and `.validation.ts`).
+*   **Dependency Injection (DI)**: Employed class-based constructor injection (e.g., in the Slots module) to loosely couple Controllers from Services, enhancing testability and scalability.
 *   **Strategy Pattern**: Encapsulated authentication logic built flexibly for distinct `USER` and `ADMIN` flows.
 *   **Singleton & Modular Encapsulation**: Centralized class-based `App` initialization separating server configuration, middleware, and route mounting.
 
