@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+<<<<<<< HEAD
 import { SlotService } from "./slot.service";
 
 const slotService = new SlotService();
@@ -8,6 +9,15 @@ export class SlotController {
     try {
       const { slotNumber } = req.body;
       const slot = await slotService.createSlot(slotNumber);
+=======
+import { SlotService } from "./slot.service";export class SlotController {
+  constructor(private slotService: SlotService) {}
+
+  async createSlot(req: Request, res: Response) {
+    try {
+      const { slotNumber } = req.body;
+      const slot = await this.slotService.createSlot(slotNumber);
+>>>>>>> a3877b2 (SLot Module)
       return res.status(201).json({ success: true, data: slot });
     } catch (error: any) {
       return res.status(400).json({ success: false, message: error.message || "Failed to create slot" });
@@ -16,7 +26,11 @@ export class SlotController {
 
   async getAllSlots(req: Request, res: Response) {
     try {
+<<<<<<< HEAD
       const slots = await slotService.getAllSlots();
+=======
+      const slots = await this.slotService.getAllSlots();
+>>>>>>> a3877b2 (SLot Module)
       return res.status(200).json({ success: true, data: slots });
     } catch (error: any) {
       return res.status(500).json({ success: false, message: error.message || "Failed to fetch slots" });
@@ -32,7 +46,11 @@ export class SlotController {
         return res.status(400).json({ success: false, message: "Invalid slot ID format" });
       }
 
+<<<<<<< HEAD
       const updatedSlot = await slotService.updateSlot(parsedId, { status, slotNumber });
+=======
+      const updatedSlot = await this.slotService.updateSlot(parsedId, { status, slotNumber });
+>>>>>>> a3877b2 (SLot Module)
       return res.status(200).json({ success: true, data: updatedSlot });
     } catch (error: any) {
       return res.status(400).json({ success: false, message: error.message || "Failed to update slot" });
