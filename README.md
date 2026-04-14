@@ -48,10 +48,10 @@ The following represents the current relational structure of the VectraSlot data
 *   **Strategy Pattern**: Encapsulated login logic for `USER` and `ADMIN`.
 *   **Security**: JWT-based session handling with specific Role-based guards.
 
-### 2. Admin & Management
-*   **Slot Module**: Complete CRUD for parking infrastructure.
-*   **Booking Management**: System-wide oversight and modification capabilities.
-*   **Analytics**: Real-time stats engine for total occupancy and growth.
+### 2. Slot & Booking Modules
+*   **Conflict-Safe Reservations**: Implemented using **Prisma Transactions** to ensure atomic operations and prevent double-bookings.
+*   **Slot Visibility**: Real-time tracking of slot statuses (`AVAILABLE`, `RESERVED`, `OCCUPIED`).
+*   **Booking Management**: Comprehensive lifecycle handling, including creation, modification, cancellation, and completion.
 
 ## API Endpoints
 
@@ -60,6 +60,21 @@ The following represents the current relational structure of the VectraSlot data
 | :--- | :--- | :--- | :--- |
 | POST | `/api/auth/register` | User Registration (Locked to USER role) | No |
 | POST | `/api/auth/login` | Secure Role-Based Login | No |
+
+### User Booking Module (Protected)
+| Method | Endpoint | Description | Functionality |
+| :--- | :--- | :--- | :--- |
+| POST | `/api/bookings` | Create Reservation | Atomic slot booking with conflict check |
+| GET | `/api/bookings/my` | My Bookings | Retrieve personal reservation history |
+| GET | `/api/bookings/:id` | Get by ID | Inspect specific reservation details |
+| PATCH | `/api/bookings/:id` | Update Time | Modify start/end times with re-validation |
+| PATCH | `/api/bookings/:id/complete` | Complete Booking | Mark a reservation as fulfilled |
+| DELETE | `/api/bookings/:id` | Cancel Booking | Standard reservation cancellation |
+
+### Slot Availability Module
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| GET | `/api/slots` | View All Slots | Publicly accessible availability list |
 
 ### Admin Panel (Protected)
 | Module | Method | Endpoint | Functionality |
@@ -84,23 +99,47 @@ The following represents the current relational structure of the VectraSlot data
 
 ### 📋 Request Parameters & Naming Conventions
 
-| Action | Parameter Name | Expected Type |
+| Module | Action | Parameter Name | Expected Type |
+| :--- | :--- | :--- | :--- |
+| **Auth** | Login | `email`, `password`, `role` | `String` |
+| **Auth** | Admin Secret | `adminSecret` | `String` (Required for Admins) |
+| **Slots** | Create Slot | `slotNumber` | `String` (e.g., `A-101`) |
+| **Slots** | Update Slot | `status`, `slotNumber` | `String` (`AVAILABLE`, `RESERVED`, `OCCUPIED`) |
+| **Booking** | Create Booking | `slotId`, `startTime`, `endTime` | `Number`, `ISO-Date`, `ISO-Date` |
+| **Booking** | Update Time | `startTime`, `endTime` | `ISO-Date`, `ISO-Date` |
+| **Admin** | Role Update | `role` | `String` (`ADMIN` \| `USER`) |
+
+### 🔄 End-to-End Testing Flow
+
+1.  **SysAdmin Login**:
+    *   Execute `POST /api/auth/login` using Admin credentials and `adminSecret`.
+    *   Retrieve the JWT `<ADMIN_TOKEN>`.
+2.  **Infrastructure Setup**:
+    *   Set Header: `Authorization: Bearer <ADMIN_TOKEN>`.
+    *   Execute `POST /api/admin/slots` to create parking slots (e.g., `V-101`).
+3.  **User Authentication**:
+    *   Execute `POST /api/auth/login` using the `test@example.com` credentials.
+    *   Retrieve the JWT `<USER_TOKEN>`.
+4.  **Slot Discovery**:
+    *   Set Header: `Authorization: Bearer <USER_TOKEN>`.
+    *   Execute `GET /api/slots` to identify an available `slotId`.
+5.  **User Booking (Transaction Check)**:
+    *   Execute `POST /api/bookings` providing the `slotId`, `startTime`, and `endTime`.
+    *   *Security Test:* Attempt to book the exact same `slotId` for an overlapping time range to verify the `400/409 Conflict` safety mechanism.
+6.  **Admin Verification**:
+    *   Switch back to the `<ADMIN_TOKEN>`.
+    *   Execute `GET /api/admin/stats` to verify the Live Occupancy Analytics have updated properly.
+
+### Default Test Credentials
+
+| Role | Email | Password |
 | :--- | :--- | :--- |
-| **Login** | `email`, `password`, `role` | `String` |
-| **Admin Secret** | `adminSecret` | `String` (Required for Admins) |
-| **Slot Creation** | `slotNumber` | `String` |
-| **Role Update** | `role` | `String` (`ADMIN` \| `USER`) |
-
-### 🔄 Testing Flow
-
-1.  **Auth**: Execute `POST /api/auth/login`. Retrieve the JWT `token`.
-2.  **Access**: All subsequent requests must use `Authorization: Bearer <TOKEN>`.
-3.  **Role Verification**: Admin routes (`/api/admin/*`) strictly validate for the `ADMIN` role and secret key.
+| **User** | `test@example.com` | `testPassword123` |
 
 ---
 
 ## Current Status
 
-*Project core foundation is established. Advanced parking logic and availability algorithms are in development.*
+*Project core foundation, role-based authentication, administrative panel, and transaction-safe booking flows are established. Advanced availability algorithms and automated vacancy tracking are in development.*
 
 *still building processing*
