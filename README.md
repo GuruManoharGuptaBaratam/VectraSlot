@@ -44,12 +44,18 @@ The following represents the current relational structure of the VectraSlot data
 
 ## Implemented Modules
 
-### 1. Auth & Middleware
-*   **Strategy Pattern**: Encapsulated login logic for `USER` and `ADMIN`.
+### 1. Core Architecture & Design Patterns
+*   **Layered Architecture**: Decoupled N-Tier structure separating Routes, Controllers (Request Handling), Services (Business Logic), and Data Validation (Zod schemas).
+*   **Single Responsibility Principle (SOLID)**: Strict adherence to SRP where functional responsibilities are granularly separated into dedicated files (e.g., `.routes.ts`, `.controller.ts`, `.service.ts`, and `.validation.ts`).
+*   **Strategy Pattern**: Encapsulated authentication logic built flexibly for distinct `USER` and `ADMIN` flows.
+*   **Singleton & Modular Encapsulation**: Centralized class-based `App` initialization separating server configuration, middleware, and route mounting.
+
+### 2. Auth & Middleware
 *   **Security**: JWT-based session handling with specific Role-based guards.
 
-### 2. Slot & Booking Modules
+### 3. Slot & Booking Modules
 *   **Conflict-Safe Reservations**: Implemented using **Prisma Transactions** to ensure atomic operations and prevent double-bookings.
+*   **Dynamic Availability Engine**: Determines slot availability in real-time by cross-referencing requested time ranges (`startTime`, `endTime`) against active overlapping bookings, isolating unbooked slots without maintaining stateful arrays.
 *   **Slot Visibility**: Real-time tracking of slot statuses (`AVAILABLE`, `RESERVED`, `OCCUPIED`).
 *   **Booking Management**: Comprehensive lifecycle handling, including creation, modification, cancellation, and completion.
 
@@ -74,7 +80,8 @@ The following represents the current relational structure of the VectraSlot data
 ### Slot Availability Module
 | Method | Endpoint | Description | Auth Required |
 | :--- | :--- | :--- | :--- |
-| GET | `/api/slots` | View All Slots | Publicly accessible availability list |
+| GET | `/api/slots` | View All Slots | No |
+| GET | `/api/slots/available` | Check availability by time window | No |
 
 ### Admin Panel (Protected)
 | Module | Method | Endpoint | Functionality |
@@ -97,7 +104,7 @@ The following represents the current relational structure of the VectraSlot data
 
 ## Testing Specifications & Workflow
 
-### 📋 Request Parameters & Naming Conventions
+### Request Parameters & Naming Conventions
 
 | Module | Action | Parameter Name | Expected Type |
 | :--- | :--- | :--- | :--- |
@@ -105,11 +112,12 @@ The following represents the current relational structure of the VectraSlot data
 | **Auth** | Admin Secret | `adminSecret` | `String` (Required for Admins) |
 | **Slots** | Create Slot | `slotNumber` | `String` (e.g., `A-101`) |
 | **Slots** | Update Slot | `status`, `slotNumber` | `String` (`AVAILABLE`, `RESERVED`, `OCCUPIED`) |
+| **Availability** | Check Time Slots | `startTime`, `endTime` (Query) | `ISO-Date`, `ISO-Date` |
 | **Booking** | Create Booking | `slotId`, `startTime`, `endTime` | `Number`, `ISO-Date`, `ISO-Date` |
 | **Booking** | Update Time | `startTime`, `endTime` | `ISO-Date`, `ISO-Date` |
 | **Admin** | Role Update | `role` | `String` (`ADMIN` \| `USER`) |
 
-### 🔄 End-to-End Testing Flow
+### End-to-End Testing Flow
 
 1.  **SysAdmin Login**:
     *   Execute `POST /api/auth/login` using Admin credentials and `adminSecret`.
