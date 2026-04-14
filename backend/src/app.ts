@@ -4,6 +4,7 @@ import authRoutes from "./auth/auth.routes";
 import adminRoutes from "./admin/admin.routes";
 import slotRoutes from "./slots/slot.routes";
 import bookingRoutes from "./booking/booking.routes";
+import availabilityRoutes from "./availability/availability.routes";
 
 dotenv.config();
 
@@ -36,6 +37,8 @@ class App {
         this.app.use("/api/slots", slotRoutes);
 
         this.app.use("/api/booking", bookingRoutes);
+
+        this.app.use("/api/slots", availabilityRoutes);
     }
 
     public startApp() {
