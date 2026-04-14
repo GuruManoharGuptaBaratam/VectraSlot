@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import * as availabilityService from "./availability.service";
+import { availabilityQuerySchema } from "./availability.validation";
 
 export const getAvailableSlots = async (req: Request, res: Response) => {
-    const { startTime, endTime } = req.query;
+    const { startTime, endTime } = availabilityQuerySchema.parse(req.query);
 
     if (!startTime || !endTime) {
         throw new Error("startTime and endTime required");

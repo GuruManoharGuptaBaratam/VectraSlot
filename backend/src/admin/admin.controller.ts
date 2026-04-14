@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { AdminService } from "./admin.service";
+import { updateUserRoleSchema } from "./admin.validation";
 
 export class AdminController {
     private adminService: AdminService;
@@ -7,7 +8,6 @@ export class AdminController {
     constructor() {
         this.adminService = new AdminService();
     }
-
 
     async getAllUsers(req: Request, res: Response) {
         try {
@@ -30,8 +30,12 @@ export class AdminController {
 
     async updateUserRole(req: Request, res: Response) {
         try {
-            const { role } = req.body;
-            const user = await this.adminService.updateUserRole(Number(req.params.id), role);
+            const parsed = updateUserRoleSchema.parse(req.body);
+            const { role } = parsed;
+            const user = await this.adminService.updateUserRole(
+                Number(req.params.id),
+                role,
+            );
             res.status(200).json({ message: "User role updated", user });
         } catch (error: any) {
             res.status(500).json({ error: error.message });
@@ -46,8 +50,6 @@ export class AdminController {
             res.status(500).json({ error: error.message });
         }
     }
-
-
 
     async createSlot(req: Request, res: Response) {
         try {
@@ -70,7 +72,10 @@ export class AdminController {
 
     async updateSlot(req: Request, res: Response) {
         try {
-            const slot = await this.adminService.updateSlot(Number(req.params.id), req.body);
+            const slot = await this.adminService.updateSlot(
+                Number(req.params.id),
+                req.body,
+            );
             res.status(200).json({ message: "Slot updated", slot });
         } catch (error: any) {
             res.status(500).json({ error: error.message });
@@ -86,7 +91,6 @@ export class AdminController {
         }
     }
 
-
     async getAllBookings(req: Request, res: Response) {
         try {
             const bookings = await this.adminService.getAllBookings();
@@ -98,7 +102,9 @@ export class AdminController {
 
     async getBookingById(req: Request, res: Response) {
         try {
-            const booking = await this.adminService.getBookingById(Number(req.params.id));
+            const booking = await this.adminService.getBookingById(
+                Number(req.params.id),
+            );
             if (!booking) return res.status(404).json({ error: "Booking not found" });
             res.status(200).json(booking);
         } catch (error: any) {
@@ -108,7 +114,10 @@ export class AdminController {
 
     async updateBooking(req: Request, res: Response) {
         try {
-            const booking = await this.adminService.updateBooking(Number(req.params.id), req.body);
+            const booking = await this.adminService.updateBooking(
+                Number(req.params.id),
+                req.body,
+            );
             res.status(200).json({ message: "Booking updated", booking });
         } catch (error: any) {
             res.status(500).json({ error: error.message });
@@ -123,7 +132,6 @@ export class AdminController {
             res.status(500).json({ error: error.message });
         }
     }
-
 
     async getStats(req: Request, res: Response) {
         try {
