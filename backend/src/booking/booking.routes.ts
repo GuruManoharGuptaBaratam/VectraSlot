@@ -1,19 +1,16 @@
 import { Router } from "express";
 import { AuthMiddleware } from "../middlewares/auth.middleware";
 import {
-    createBooking,
-    getMyBookings,
-    getBookingById,
-    cancelBooking,
-    updateBooking,
-    completeBooking,
-} 
-from "./booking.controller";
-
+  createBooking,
+  getMyBookings,
+  getBookingById,
+  cancelBooking,
+  updateBooking,
+  completeBooking,
+} from "./booking.controller";
 
 const router = Router();
 
-// Protect all booking routes with JWT verification
 router.use(AuthMiddleware.verifyToken);
 
 router.post("/", createBooking);
