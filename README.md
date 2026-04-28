@@ -17,8 +17,11 @@ VectraSlot is a backend-driven parking platform designed for automated slot trac
 - [Project Overview](#project-overview)
 - [System Architecture](#system-architecture)
 - [Database Design](#database-design)
+- [UML Diagrams](#uml-diagrams)
+- [Design Philosophy & Principles](#design-philosophy--principles)
 - [Implemented Modules](#implemented-modules)
 - [Testing Specifications](#testing-specifications--workflow)
+- [Technical Documentation](./docs/TECHNICAL_ANALYSIS.md)
 
 ---
 
@@ -39,6 +42,31 @@ The following represents the current relational structure of the VectraSlot data
 ![Crow's Foot Notation](./diagrams/ER_Diagrams/Crow_Foot.png)
 
 *Figure 2: Relational mapping of Users, Parking Slots, and Reservation Bookings.*
+
+---
+
+## UML Diagrams
+
+Detailed behavioral and structural diagrams are available in the [UML Diagrams Document](./diagrams/UML/UML_Diagrams.md):
+- **Use Case Diagram**: High-level system interactions.
+- **Class Diagram**: Structural relationship between Controllers, Services, and Interfaces.
+- **Sequence Diagram**: Atomic transaction flow for booking reservations.
+
+---
+
+## Design Philosophy & Principles
+
+The VectraSlot backend is engineered with a focus on scalability, maintainability, and enterprise-grade robustness.
+
+### 🧩 Object-Oriented Programming (OOP)
+The system leverages **Classes** and **Interfaces** to encapsulate logic. For example, the `SlotService` and `AdminService` encapsulate complex database operations, exposing only clean, high-level methods to the controllers.
+
+### 🛡️ SOLID Principles
+- **SRP (Single Responsibility)**: Logic is strictly partitioned—Zod for validation, Controllers for orchestration, Services for business rules.
+- **DIP (Dependency Inversion)**: The `Slots` module utilizes **Constructor Injection**, allowing for decoupled and highly testable code.
+- **Strategy Pattern**: The `Auth` module implements a Strategy pattern to handle diverse login requirements ($USER$ vs $ADMIN$) through a common interface.
+
+For a deep-dive evaluation, see the [Technical Analysis Document](./docs/TECHNICAL_ANALYSIS.md).
 
 ---
 
@@ -146,6 +174,6 @@ The following represents the current relational structure of the VectraSlot data
 
 ## Current Status
 
-*Project core foundation, role-based authentication, administrative panel, and transaction-safe booking flows are established. Advanced availability algorithms and automated vacancy tracking are in development.*
+*Project core foundation, role-based authentication, administrative panel, and transaction-safe booking flows are established. Advanced availability algorithms and automated vacancy tracking are implemented and validated.*
 
-*still building processing*
+---

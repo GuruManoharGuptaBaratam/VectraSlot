@@ -1,0 +1,502 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{titlesec}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!50!black,
+    urlcolor=blue!50!black
+}
+
+\setlist[itemize]{leftmargin=1.5em}
+\setlist[enumerate]{leftmargin=1.5em}
+\renewcommand{\arraystretch}{1.2}
+\titleformat{\section}{\large\bfseries}{\thesection}{0.75em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.75em}{}
+
+\title{\textbf{VectraSlot System Design Report}}
+\author{Project Analysis Document}
+\date{\today}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{2.5cm}
+
+    {\Large \textbf{System Design Project Report}\par}
+    \vspace{1.25cm}
+
+    {\huge \textbf{VECTRASLOT}\par}
+    \vspace{0.5cm}
+
+    {\Large Smart Parking Management System\par}
+    \vspace{2cm}
+
+    {\large \textbf{Subject:} System Design\par}
+    \vspace{0.6cm}
+
+    {\large \textbf{Document Type:} Project Architecture and Design Analysis\par}
+    \vspace{2.2cm}
+
+    {\large Project Analysis Document\par}
+    \vfill
+
+    {\large \today\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Contribution Matrix}
+\begin{longtable}{p{0.08\textwidth} p{0.24\textwidth} p{0.22\textwidth} p{0.36\textwidth}}
+\toprule
+\textbf{S. No.} & \textbf{Name} & \textbf{Enrollment Number} & \textbf{Contribution} \\
+\midrule
+1 & Guru Manohar Gupta & 2401010125 & Backend,Report,Diagrams \\
+2 & S Harsith Priyan & 2401010398 & Backend, Architecture Planning, Database \\
+3 & Deepanshu Chaudhary & 2401010145 & Backend, FrontEnd \\
+4 & Hemamdharnath Dakarapu & 2401010137 4 & Frontend, Project Architecture \\
+5 & JayaDeep & 2401010172 & Frontend, Diagrams \\
+\bottomrule
+\end{longtable}
+
+\section{Project Overview}
+VectraSlot is a full-stack parking slot reservation and management system. It allows end users to register, authenticate, check slot availability for a time window, create bookings, and manage their reservations. It also provides a separate administrative interface for managing users, parking slots, bookings, and high-level operational statistics.
+
+From a system design perspective, the project follows a modular client-server architecture with three clear layers:
+\begin{itemize}
+    \item A React frontend for user and admin interaction.
+    \item An Express and TypeScript backend that exposes REST APIs.
+    \item A PostgreSQL database accessed through Prisma ORM.
+\end{itemize}
+
+The project demonstrates key system design concepts such as layered architecture, role-based access control, transactional booking logic, modular APIs, and a normalized relational schema.
+
+\section{Problem Statement}
+Traditional parking operations often suffer from manual allocation, unclear availability, and poor visibility into active reservations. VectraSlot addresses this by providing a centralized platform where:
+\begin{itemize}
+    \item users can discover available parking slots for a selected time range,
+    \item bookings can be created without double allocation,
+    \item administrators can monitor usage and maintain system data,
+    \item access to sensitive operations is controlled through roles.
+\end{itemize}
+
+\section{System Goals}
+\subsection{Functional Goals}
+\begin{itemize}
+    \item Register and authenticate users securely.
+    \item Support separate login behavior for \texttt{USER} and \texttt{ADMIN}.
+    \item View public slot inventory and time-based slot availability.
+    \item Create, update, cancel, and complete bookings.
+    \item Allow administrators to manage users, slots, bookings, and dashboard metrics.
+\end{itemize}
+
+\subsection{Non-Functional Goals}
+\begin{itemize}
+    \item Maintain modular and readable code organization.
+    \item Prevent booking conflicts for overlapping time ranges.
+    \item Keep role enforcement simple and explicit.
+    \item Support future scaling through clear module boundaries.
+\end{itemize}
+
+\section{High-Level Architecture}
+The project follows a layered web application architecture. The frontend communicates with backend REST endpoints over HTTP, while the backend delegates persistence to Prisma, which in turn interacts with PostgreSQL.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{./Vectraslot_Project_architecure.png}
+    \caption{High-level project architecture of VectraSlot}
+\end{figure}
+
+\subsection{Architectural Layers}
+\begin{longtable}{p{0.22\textwidth} p{0.70\textwidth}}
+\toprule
+\textbf{Layer} & \textbf{Responsibility} \\
+\midrule
+Frontend & Presents user and admin dashboards, handles route protection, manages forms, and invokes REST APIs. \\
+Backend API & Accepts requests, validates input, enforces authorization, applies business rules, and returns structured responses. \\
+Service Layer & Encapsulates domain logic such as slot creation, booking conflict detection, role-aware authentication, and admin analytics. \\
+Data Access Layer & Uses Prisma client for persistence, querying, transactions, and relational mapping. \\
+Database & Stores normalized entities such as users, parking slots, and bookings. \\
+\bottomrule
+\end{longtable}
+
+\section{Technology Stack}
+\begin{longtable}{p{0.28\textwidth} p{0.62\textwidth}}
+\toprule
+\textbf{Category} & \textbf{Technology} \\
+\midrule
+Frontend & React, TypeScript, React Router, Vite, Tailwind CSS \\
+Backend & Node.js, Express, TypeScript \\
+Database Access & Prisma ORM with PostgreSQL adapter \\
+Database & PostgreSQL \\
+Authentication & JWT, bcryptjs \\
+Validation & Zod \\
+Build and Tooling & TypeScript compiler, nodemon, ts-node \\
+\bottomrule
+\end{longtable}
+
+\section{Module Decomposition}
+The backend is divided into feature-based modules. Each module generally follows a route-controller-service split, which improves clarity and keeps the request lifecycle easy to trace.
+
+\subsection{Authentication Module}
+The authentication module handles registration and login. It uses a strategy-based design to differentiate between \texttt{USER} and \texttt{ADMIN} login flows.
+
+\textbf{Key responsibilities:}
+\begin{itemize}
+    \item user registration,
+    \item password hashing,
+    \item JWT token generation,
+    \item admin secret validation,
+    \item role-specific login policy enforcement.
+\end{itemize}
+
+\subsection{Slot Module}
+The slot module manages parking slot inventory.
+
+\textbf{Key responsibilities:}
+\begin{itemize}
+    \item create a new slot,
+    \item list all slots,
+    \item update slot number or status.
+\end{itemize}
+
+\subsection{Availability Module}
+The availability module computes which slots are available for a given time interval.
+
+\textbf{Core logic:}
+\begin{enumerate}
+    \item validate the requested \texttt{startTime} and \texttt{endTime},
+    \item find active bookings that overlap the requested window,
+    \item collect conflicting slot identifiers,
+    \item return slots that are marked \texttt{AVAILABLE} and are not part of the conflict set.
+\end{enumerate}
+
+\subsection{Booking Module}
+The booking module is the core business domain of the system.
+
+\textbf{Key responsibilities:}
+\begin{itemize}
+    \item create new bookings,
+    \item list bookings for the authenticated user,
+    \item retrieve a booking by id,
+    \item update booking time range,
+    \item cancel bookings,
+    \item complete bookings.
+\end{itemize}
+
+\subsection{Admin Module}
+The admin module aggregates operational capabilities into one protected domain.
+
+\textbf{Key responsibilities:}
+\begin{itemize}
+    \item view and manage users,
+    \item create, update, and delete slots,
+    \item view and manage all bookings,
+    \item compute system-level statistics.
+\end{itemize}
+
+\subsection{Frontend Module}
+The frontend is organized around user journeys rather than low-level data access. It includes:
+\begin{itemize}
+    \item landing page,
+    \item login page,
+    \item signup page,
+    \item admin dashboard,
+    \item user dashboard,
+    \item API utility layer,
+    \item local session storage utilities.
+\end{itemize}
+
+\section{Data Design}
+VectraSlot uses a relational schema centered on three main entities: \texttt{User}, \texttt{ParkingSlot}, and \texttt{Booking}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.88\textwidth]{./Crow_Foot.png}
+    \caption{Entity relationship view of the VectraSlot data model}
+\end{figure}
+
+\subsection{Core Entities}
+\begin{longtable}{p{0.22\textwidth} p{0.70\textwidth}}
+\toprule
+\textbf{Entity} & \textbf{Purpose} \\
+\midrule
+User & Stores account identity, hashed password, and role. \\
+ParkingSlot & Represents a physical parking slot with unique slot number and operational status. \\
+Booking & Represents a reservation made by a user for a slot during a time window. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Relationships}
+\begin{itemize}
+    \item One user can have many bookings.
+    \item One parking slot can have many bookings over time.
+    \item Each booking belongs to exactly one user and one parking slot.
+\end{itemize}
+
+\subsection{Enumerations}
+The schema uses enums to reduce ambiguity:
+\begin{itemize}
+    \item \texttt{Role}: \texttt{ADMIN}, \texttt{USER}
+    \item \texttt{SlotStatus}: \texttt{AVAILABLE}, \texttt{RESERVED}, \texttt{OCCUPIED}
+    \item \texttt{BookingStatus}: \texttt{ACTIVE}, \texttt{COMPLETED}, \texttt{CANCELLED}
+\end{itemize}
+
+\subsection{Schema Design Remarks}
+\begin{itemize}
+    \item Unique email and unique slot number constraints prevent duplicate identity and inventory records.
+    \item Indexes on \texttt{Booking.userId} and \texttt{Booking.slotId} support common lookup paths.
+    \item Time-window conflict detection is handled at the application layer rather than through a specialized database exclusion constraint.
+\end{itemize}
+
+\section{UML Diagrams}
+This section is reserved for the primary UML artifacts associated with the system design of VectraSlot.
+
+\subsection{Sequence Diagram}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{./Sequence_Diagram_v2.png}
+    \caption{Sequence diagram of the booking interaction flow}
+\end{figure}
+
+\subsection{Class Diagram}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{./UML_Class.png}
+    \caption{UML class diagram of the VectraSlot system}
+\end{figure}
+
+\section{Applied SOLID Principles}
+Only the SOLID principles that are clearly reflected in the present codebase are discussed below.
+
+\subsection{Single Responsibility Principle}
+The project applies Single Responsibility Principle consistently across backend modules. Each layer has a focused purpose:
+\begin{itemize}
+    \item routes define endpoint mappings,
+    \item controllers handle HTTP request and response flow,
+    \item services contain business rules,
+    \item validation files define input contracts,
+    \item middleware enforces authentication and authorization.
+\end{itemize}
+
+This separation is visible in modules such as \texttt{auth}, \texttt{booking}, \texttt{slots}, \texttt{availability}, and \texttt{admin}. For example, booking conflict logic is placed in \texttt{booking.service.ts}, while request parsing remains in \texttt{booking.controller.ts}. This improves maintainability because changes in business rules do not require controller rewrites.
+
+\subsection{Open/Closed Principle}
+The authentication design partially reflects the Open/Closed Principle. The \texttt{AuthService} depends on the \texttt{IAuthStrategy} abstraction, and concrete behaviors are provided by \texttt{UserAuthStrategy} and \texttt{AdminAuthStrategy}. As a result, authentication behavior can be extended by adding another strategy class without redesigning the service contract itself.
+
+This is important from a system design perspective because role-specific policy is isolated behind a stable interface rather than mixed into one growing conditional block.
+
+\subsection{Dependency Inversion Principle}
+Dependency Inversion is applied in the slot module where \texttt{SlotController} receives \texttt{SlotService} through constructor injection. The controller depends on a service abstraction boundary instead of embedding data access logic directly.
+
+While the project does not use a full dependency injection container, this pattern still improves testability and reduces coupling between request handling and business logic.
+
+\section{Applied Design Patterns}
+Only the design patterns that are directly implemented in the code are included here.
+
+\subsection{Layered Architecture}
+The strongest architectural pattern in the project is layered architecture. Each request moves through clearly separated stages:
+\begin{enumerate}
+    \item route,
+    \item controller,
+    \item service,
+    \item Prisma data access,
+    \item database.
+\end{enumerate}
+
+This structure is consistently followed across the major backend modules. It improves readability, localizes change, and makes the system easier to extend.
+
+\subsection{Strategy Pattern}
+The authentication module implements the Strategy Pattern through:
+\begin{itemize}
+    \item \texttt{IAuthStrategy},
+    \item \texttt{UserAuthStrategy},
+    \item \texttt{AdminAuthStrategy},
+    \item \texttt{AuthService} as the context that switches strategies.
+\end{itemize}
+
+This pattern is appropriate because admin and user login rules are not identical. Admin login requires an additional secret and stricter privilege validation. By encapsulating those rules in separate strategy classes, the code remains structured and avoids scattered role-based branching.
+
+\subsection{Constructor Injection}
+Constructor injection is applied in the slot module where the controller accepts its service dependency through the constructor. This is a small but meaningful design pattern because it separates object creation from object usage and supports cleaner modular structure.
+
+\subsection{Shared Client Pattern}
+The Prisma client is created in a central utility module and reused across services. This follows a shared client approach similar to a singleton-style access pattern for infrastructure resources. It ensures that database access configuration remains centralized and consistent throughout the application.
+
+\section{Request Flow and Control Flow}
+\subsection{Authentication Flow}
+\begin{enumerate}
+    \item Client submits login credentials with a declared role.
+    \item Controller resolves the appropriate strategy.
+    \item Strategy validates account existence and credentials.
+    \item Backend generates JWT and returns authenticated user metadata.
+    \item Frontend stores token and user details for route-based access.
+\end{enumerate}
+
+\subsection{Availability Check Flow}
+\begin{enumerate}
+    \item User selects \texttt{startTime} and \texttt{endTime}.
+    \item Frontend calls \texttt{/api/slots/available}.
+    \item Backend validates query parameters.
+    \item Service finds overlapping active bookings.
+    \item Service returns only slots that are both operationally available and not reserved in that window.
+\end{enumerate}
+
+\subsection{Booking Creation Flow}
+\begin{enumerate}
+    \item Authenticated user selects a slot and time window.
+    \item Booking endpoint verifies JWT and extracts user identity.
+    \item Service starts a database transaction.
+    \item Slot existence and time validity are checked.
+    \item Overlapping active bookings for the same slot are searched.
+    \item If no conflict exists, a new booking is created and committed.
+\end{enumerate}
+
+\subsection{Admin Dashboard Flow}
+\begin{enumerate}
+    \item Admin logs in with password and admin secret.
+    \item Frontend loads users, slots, bookings, and statistics in parallel.
+    \item Backend verifies token and admin role for every admin endpoint.
+    \item Admin mutations trigger API updates followed by dashboard refresh.
+\end{enumerate}
+
+\section{API Design Summary}
+\subsection{Public and Auth APIs}
+\begin{longtable}{p{0.15\textwidth} p{0.28\textwidth} p{0.47\textwidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+POST & \texttt{/api/auth/register} & Create user account \\
+POST & \texttt{/api/auth/login} & Login for user or admin \\
+GET & \texttt{/api/slots} & List slot inventory \\
+GET & \texttt{/api/slots/available} & Query time-window-based availability \\
+\bottomrule
+\end{longtable}
+
+\subsection{Authenticated Booking APIs}
+\begin{longtable}{p{0.15\textwidth} p{0.28\textwidth} p{0.47\textwidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+POST & \texttt{/api/booking} & Create booking \\
+GET & \texttt{/api/booking/my} & List current user's bookings \\
+GET & \texttt{/api/booking/:id} & Retrieve booking by id \\
+PATCH & \texttt{/api/booking/:id} & Update booking time range \\
+PATCH & \texttt{/api/booking/:id/complete} & Mark booking as completed \\
+DELETE & \texttt{/api/booking/:id} & Cancel booking \\
+\bottomrule
+\end{longtable}
+
+\subsection{Admin APIs}
+\begin{longtable}{p{0.15\textwidth} p{0.28\textwidth} p{0.47\textwidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+GET & \texttt{/api/admin/users} & View users \\
+PATCH & \texttt{/api/admin/users/:id/role} & Change user role \\
+DELETE & \texttt{/api/admin/users/:id} & Delete user \\
+POST & \texttt{/api/admin/slots} & Create slot \\
+GET & \texttt{/api/admin/slots} & View all slots with active bookings \\
+PATCH & \texttt{/api/admin/slots/:id} & Update slot \\
+DELETE & \texttt{/api/admin/slots/:id} & Delete slot \\
+GET & \texttt{/api/admin/bookings} & View all bookings \\
+PATCH & \texttt{/api/admin/bookings/:id} & Modify booking \\
+DELETE & \texttt{/api/admin/bookings/:id} & Delete booking \\
+GET & \texttt{/api/admin/stats} & View system statistics \\
+\bottomrule
+\end{longtable}
+
+\section{Security Design}
+\subsection{Authentication and Authorization}
+The system uses JWT-based stateless authentication. Tokens are issued during login and sent by the client in the \texttt{Authorization} header. The backend middleware verifies the token and attaches user identity to the request.
+
+Authorization is role-based:
+\begin{itemize}
+    \item regular users can access booking operations associated with their accounts,
+    \item admins can access management and analytics endpoints,
+    \item admin login additionally requires an \texttt{ADMIN\_SECRET}.
+\end{itemize}
+
+\subsection{Credential Protection}
+Passwords are hashed using \texttt{bcryptjs}. This prevents plain text password storage and supports safe credential verification.
+
+\subsection{Validation}
+The codebase uses Zod schemas in several modules for request validation. This improves reliability by rejecting malformed input before business logic runs.
+
+\subsection{Security Limitations}
+The current design is solid for a project setting, but some production-grade enhancements would still be valuable:
+\begin{itemize}
+    \item stronger global validation consistency across all routes,
+    \item centralized error handling middleware,
+    \item token refresh or revocation strategy,
+    \item rate limiting for authentication endpoints,
+    \item stricter environment management for secrets and configuration.
+\end{itemize}
+
+\section{Scalability and Reliability Discussion}
+\subsection{Current Strengths}
+\begin{itemize}
+    \item Transaction-based booking logic improves consistency.
+    \item Indexed foreign keys support common read operations.
+    \item Stateless JWT authentication simplifies horizontal scaling of the backend.
+    \item Clear module boundaries support maintainability.
+\end{itemize}
+
+\subsection{Potential Bottlenecks}
+\begin{itemize}
+    \item availability queries depend on scanning overlapping bookings and may grow costlier as booking volume increases,
+    \item polling every few seconds from dashboards can increase request load,
+    \item admin endpoints aggregate multiple data domains and may become heavy with larger datasets,
+    \item conflict checks currently rely on application logic rather than a stronger database-level concurrency guard.
+\end{itemize}
+
+\subsection{Recommended Future Improvements}
+\begin{itemize}
+    \item add pagination and filtering for admin listings,
+    \item introduce centralized logging and monitoring,
+    \item normalize error response format across all endpoints,
+    \item add database constraints or locking strategies for stronger concurrent booking guarantees,
+    \item consider caching or materialized summaries for dashboard statistics,
+    \item move from polling to push-based updates if real-time scale becomes important.
+\end{itemize}
+
+\section{Strengths and Current Gaps}
+\subsection{Strengths}
+\begin{itemize}
+    \item Clean full-stack separation with understandable module boundaries.
+    \item Meaningful role-based architecture rather than only cosmetic role labeling.
+    \item Transactional booking workflow for conflict-sensitive logic.
+    \item Relational schema that matches the domain naturally.
+    \item Frontend and backend naming are mostly aligned around core business concepts.
+\end{itemize}
+
+\subsection{Current Gaps}
+\begin{itemize}
+    \item public slot mutation endpoints exist without enforced admin middleware,
+    \item some response shapes differ across modules,
+    \item error handling is distributed rather than centralized,
+    \item some update operations accept broad request bodies and could use stricter validation,
+    \item route naming mixes singular and plural conventions in a few places.
+\end{itemize}
+
+\section{Conclusion}
+VectraSlot is a structured parking reservation system with clear architectural boundaries between interface, application logic, and persistence. The codebase demonstrates applied system design concepts through modular services, role-based access control, transactional booking handling, and a well-aligned relational schema.
+
+Its strongest technical qualities are the layered backend structure, the strategy-based authentication model, and the conflict-aware booking workflow. These choices make the project suitable for system design evaluation while still remaining practical and understandable.
+
+\end{document}
