@@ -5,7 +5,7 @@ export type ApiEnvelope<T> = {
   error?: string;
 };
 
-const apiBase = import.meta.env.VITE_API_BASE_URL ?? "";
+const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 
 const readJson = async (response: Response): Promise<unknown> => {
   const text = await response.text();

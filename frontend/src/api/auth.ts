@@ -5,7 +5,7 @@ import {
   RegisterPayload,
 } from "../types/auth";
 
-const apiBase = import.meta.env.VITE_API_BASE_URL ?? "";
+const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 
 async function postJson<TPayload>(
   endpoint: string,
