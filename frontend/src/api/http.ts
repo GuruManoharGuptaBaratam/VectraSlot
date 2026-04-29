@@ -1,11 +1,11 @@
+import { API_BASE_URL } from "./config";
+
 export type ApiEnvelope<T> = {
   success?: boolean;
   message?: string;
   data?: T;
   error?: string;
 };
-
-const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 
 const readJson = async (response: Response): Promise<unknown> => {
   const text = await response.text();
@@ -45,7 +45,7 @@ export async function requestJson<T>(
   endpoint: string,
   init: RequestInit = {},
 ): Promise<T> {
-  const response = await fetch(`${apiBase}${endpoint}`, {
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
