@@ -14,11 +14,15 @@ class App {
     private port: string | number;
     private allowedOrigins: string[];
     private allowedOriginPatterns: RegExp[];
+    private readonly defaultAllowedOriginPatterns: RegExp[];
 
     constructor() {
         this.app = express();
         this.port = process.env.PORT || 4035;
         this.allowedOrigins = this.getAllowedOrigins();
+        this.defaultAllowedOriginPatterns = [
+            /^https:\/\/vectra-slot-frontend(-.*)?\.vercel\.app$/,
+        ];
         this.allowedOriginPatterns = this.getAllowedOriginPatterns();
 
         this.initializeMiddlewares();
@@ -56,25 +60,33 @@ class App {
             return true;
         }
 
-        return this.allowedOriginPatterns.some((pattern) => pattern.test(origin));
+        return [...this.defaultAllowedOriginPatterns, ...this.allowedOriginPatterns].some((pattern) =>
+            pattern.test(origin)
+        );
     }
 
     private initializeMiddlewares() {
-        this.app.use(
-            cors({
-                origin: (origin, callback) => {
-                    const hasCorsRestrictions =
-                        this.allowedOrigins.length > 0 || this.allowedOriginPatterns.length > 0;
+        const corsOptions: cors.CorsOptions = {
+            origin: (origin, callback) => {
+                const hasCorsRestrictions =
+                    this.allowedOrigins.length > 0 ||
+                    this.allowedOriginPatterns.length > 0 ||
+                    this.defaultAllowedOriginPatterns.length > 0;
 
-                    if (!origin || !hasCorsRestrictions || this.isOriginAllowed(origin)) {
-                        callback(null, true);
-                        return;
-                    }
+                if (!origin || !hasCorsRestrictions || this.isOriginAllowed(origin)) {
+                    callback(null, true);
+                    return;
+                }
 
-                    callback(new Error(`Origin ${origin} is not allowed by CORS.`));
-                },
-            })
-        );
+                callback(null, false);
+            },
+            methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+            allowedHeaders: ["Content-Type", "Authorization"],
+            optionsSuccessStatus: 204,
+        };
+
+        this.app.use(cors(corsOptions));
+        this.app.options("*", cors(corsOptions));
         this.app.use(express.json());
         this.app.use(express.urlencoded({ extended: true }));
     }
