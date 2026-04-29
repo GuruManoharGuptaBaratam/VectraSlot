@@ -1,5 +1,5 @@
 import { prisma } from "../utils/prisma";
-import { SlotStatus } from "../generated/prisma";
+import { SlotStatus } from "@prisma/client";
 
 export class SlotService {
   async createSlot(slotNumber: string) {

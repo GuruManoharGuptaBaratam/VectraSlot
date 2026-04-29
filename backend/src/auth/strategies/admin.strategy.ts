@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { prisma } from "../../utils/prisma";
 import { AuthRequest, AuthResponse, IAuthStrategy } from "./auth.strategy.interface";
-import { Role } from "../../generated/prisma";
+import { Role } from "@prisma/client";
 
 export class AdminAuthStrategy implements IAuthStrategy {
     // Admin registration is DISABLED in this application for security.

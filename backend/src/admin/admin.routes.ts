@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { AdminController } from "./admin.controller";
 import { AuthMiddleware } from "../middlewares/auth.middleware";
-import { Role } from "../generated/prisma";
+import { Role } from "@prisma/client";
 
 const router = Router();
 const controller = new AdminController();

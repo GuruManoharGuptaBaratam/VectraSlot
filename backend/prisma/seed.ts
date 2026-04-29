@@ -1,7 +1,7 @@
 import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { prisma } from "../src/utils/prisma";
-import { Role } from "../src/generated/prisma";
+import { Role } from "@prisma/client";
 
 /**
  * Seed script for initial test data.
