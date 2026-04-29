@@ -13,11 +13,13 @@ class App {
     public app: express.Application;
     private port: string | number;
     private allowedOrigins: string[];
+    private allowedOriginPatterns: RegExp[];
 
     constructor() {
         this.app = express();
         this.port = process.env.PORT || 4035;
         this.allowedOrigins = this.getAllowedOrigins();
+        this.allowedOriginPatterns = this.getAllowedOriginPatterns();
 
         this.initializeMiddlewares();
         this.initializeRoutes();
@@ -32,11 +34,39 @@ class App {
             .filter(Boolean);
     }
 
+    private getAllowedOriginPatterns(): RegExp[] {
+        const configuredPatterns = process.env.CORS_ORIGIN_REGEX || "";
+
+        return configuredPatterns
+            .split(",")
+            .map((pattern) => pattern.trim())
+            .filter(Boolean)
+            .flatMap((pattern) => {
+                try {
+                    return [new RegExp(pattern)];
+                } catch {
+                    console.warn(`Skipping invalid CORS regex pattern: ${pattern}`);
+                    return [];
+                }
+            });
+    }
+
+    private isOriginAllowed(origin: string): boolean {
+        if (this.allowedOrigins.includes(origin)) {
+            return true;
+        }
+
+        return this.allowedOriginPatterns.some((pattern) => pattern.test(origin));
+    }
+
     private initializeMiddlewares() {
         this.app.use(
             cors({
                 origin: (origin, callback) => {
-                    if (!origin || this.allowedOrigins.length === 0 || this.allowedOrigins.includes(origin)) {
+                    const hasCorsRestrictions =
+                        this.allowedOrigins.length > 0 || this.allowedOriginPatterns.length > 0;
+
+                    if (!origin || !hasCorsRestrictions || this.isOriginAllowed(origin)) {
                         callback(null, true);
                         return;
                     }
